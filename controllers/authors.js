@@ -1,67 +1,132 @@
-const mongodb = require('../data/database');
-const objectId = require('mongodb').ObjectId;
+const mongoose = require('mongoose');
+const Author = require('../models/author');
 
-const getAllAuthors = async (req, res) => {
-    const result = await mongodb.getDatabase().db().collection('authors').find();
-    result.toArray().then((authors) => {
-        res.setHeader('Content-Type', 'application/json');
+//Get all authors
+const getAllAuthors = async (req, res, next) => {
+    //#swagger.tags = ['Authors']
+    try {
+        const authors = await Author.find();
+        
         res.status(200).json(authors);
-    });
-};
-
-const getAuthorById = async (req, res) => {
-    const authorId = new objectId(req.params.id);
-    const result = await mongodb.getDatabase().db().collection('authors').find({ _id: authorId });
-    result.toArray().then((authors) => {
-        res.setHeader('Content-Type', 'application/json');
-        res.status(200).json(authors[0]);
-    });
-};
-
-const createAuthor = async (req, res) => {
-    const author = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        birthYear: req.body.birthYear,
-        nationality: req.body.nationality,
-        genre: req.body.genre,
-        notableWork: req.body.notableWork,
-        website: req.body.website
-    };
-    const response = await mongodb.getDatabase().db().collection('authors').insertOne(req.body);
-    if (response.acknowledged) {
-        res.status(204).json(response);
-    } else {
-        res.status(500).json(response.error || 'Some error occurred while creating the author.');
+    } catch (error) {
+        next(error);
     }
 };
 
-const updateAuthor = async (req, res) => {
-    const authorId = new objectId(req.params.id);
-    const author = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        birthYear: req.body.birthYear,
-        nationality: req.body.nationality,
-        genre: req.body.genre,
-        notableWork: req.body.notableWork,
-        website: req.body.website
-    };
-    const response = await mongodb.getDatabase().db().collection('authors').replaceOne({ _id: authorId }, author);
-    if (response.modifiedCount > 0) {
-        res.status(204).json(response);
-    } else {
-        res.status(500).json(response.error || 'Some error occurred while updating the author.');
+//Get a author by ID
+const getAuthorById = async (req, res, next) => {
+    //#swagger.tags = ['Authors']
+    try {
+        const authorId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(authorId)) {
+            return res.status(400).json({ message: 'Invalid author ID' });
+        }
+
+        const author = await Author.findById(authorId);
+        if (!author) {
+            return res.status(404).json({ message: 'Author not found' });
+        }
+
+        res.status(200).json(author);
+    } catch (error) {
+        next(error);
     }
 };
 
-const deleteAuthor = async (req, res) => {
-    const userId = new objectId(req.params.id);
-    const response = await mongodb.getDatabase().db().collection('authors').deleteOne({ _id: userId });
-    if (response.deletedCount > 0) {
-        res.status(204).json(response);
-    } else {
-        res.status(500).json(response.error || 'Some error occurred while deleting the author.');
+//Create a new author
+const createAuthor = async (req, res, next) => {
+    //#swagger.tags = ['Authors']
+    try {
+        const { firstName, lastName, birthYear, nationality, genre, notableWork, website } = req.body;
+
+        const author = await Author.create({
+            firstName,
+            lastName,
+            birthYear,
+            nationality,
+            genre,
+            notableWork,
+            website
+        });
+
+        res.status(201).json({
+            message: 'Author created successfully',
+            author
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+//Update a author by ID
+const updateAuthor = async (req, res, next) => {
+    //#swagger.tags = ['Authors']
+    try {
+        const authorId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(authorId)) {
+            return res.status(400).json({ 
+                message: 'Invalid author ID' 
+            });
+        }
+
+        const { firstName, lastName, birthYear, nationality, genre, notableWork, website } = req.body;
+
+        const updatedAuthor = await Author.findByIdAndUpdate(
+            authorId,
+            { 
+                firstName,
+                lastName,
+                birthYear,
+                nationality,
+                genre,
+                notableWork,
+                website
+            },
+            { 
+                new: true, 
+                runValidators: true
+             }
+        );
+
+        if (!updatedAuthor) {
+            return res.status(404).json({ 
+                message: 'Author not found' 
+            });
+        }
+
+        res.status(200).json({
+            message: 'Author updated successfully',
+            author: updatedAuthor
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+//Delete a author by ID
+const deleteAuthor = async (req, res, next) => {
+    //#swagger.tags = ['Authors']
+    try {
+        const authorId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(authorId)) {
+            return res.status(400).json({ message: 'Invalid author ID' });
+        }
+
+        const deletedAuthor = await Author.findByIdAndDelete(authorId);
+
+        if (!deletedAuthor) {
+            return res.status(404).json({ message: 'Author not found' });
+        }
+
+        res.status(200).json({
+            message: 'Author deleted successfully',
+            author: deletedAuthor
+        });
+    } catch (error) {
+        next(error);
     }
 };
 

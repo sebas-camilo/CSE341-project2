@@ -3,6 +3,7 @@ const Book = require('../models/book');
 
 //Get all books
 const getAllBooks = async (req, res, next) => {
+    //#swagger.tags = ['Books']
     try {
         const books = await Book.find();
         
@@ -14,6 +15,7 @@ const getAllBooks = async (req, res, next) => {
 
 //Get a book by ID
 const getBookById = async (req, res, next) => {
+    //#swagger.tags = ['Books']
     try {
         const bookId = req.params.id;
 
@@ -34,6 +36,7 @@ const getBookById = async (req, res, next) => {
 
 //Create a new book
 const createBook = async (req, res, next) => {
+    //#swagger.tags = ['Books']
     try {
         const { title, author, publicationYear, genre } = req.body;
 
@@ -55,6 +58,7 @@ const createBook = async (req, res, next) => {
   
 //Update a book by ID
 const updateBook = async (req, res, next) => {
+    //#swagger.tags = ['Books']
     try {
         const bookId = req.params.id;
 
@@ -97,6 +101,7 @@ const updateBook = async (req, res, next) => {
 
 //Delete a book by ID
 const deleteBook = async (req, res, next) => {
+    //#swagger.tags = ['Books']
     try {
         const bookId = req.params.id;
 
