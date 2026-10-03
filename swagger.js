@@ -5,8 +5,6 @@ const doc = {
     title: 'My API',
     description: 'API documentation for my application',
   },
-  host: 'localhost:3000',
-  schemes: ['https', 'http'],
 };
 
 const outputFile = './swagger.json';

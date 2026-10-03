@@ -5,11 +5,7 @@
     "description": "API documentation for my application",
     "version": "1.0.0"
   },
-  "host": "localhost:3000",
   "basePath": "/",
-  "schemes": [
-    "https"
-  ],
   "paths": {
     "/": {
       "get": {
