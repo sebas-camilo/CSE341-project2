@@ -8,15 +8,31 @@ const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
-const githubCallbackUrl = 'http://localhost:3000/github/callback';
+const isProduction = process.env.NODE_ENV === 'production';
+const renderExternalUrl = process.env.RENDER_EXTERNAL_URL?.replace(/\/$/, '');
+const githubCallbackUrl = process.env.GITHUB_CALLBACK_URL
+    || (renderExternalUrl && `${renderExternalUrl}/github/callback`)
+    || 'http://localhost:3000/github/callback';
+
+if (isProduction && !process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET must be set in production');
+}
+
+if (isProduction) {
+    app.set('trust proxy', 1);
+}
 
 // Allows Express to read JSON from requests
 app.use(express.json());
 
 app.use(session({
-    secret: 'secret',
+    secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: {
+        secure: isProduction,
+        sameSite: 'lax'
+    }
 }));
 
 app.use(passport.initialize());
@@ -94,4 +110,3 @@ mongodb.initDb((err) => {
         });
     }
 });
-
